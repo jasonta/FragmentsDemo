@@ -1,14 +1,14 @@
 package com.sandiegogdg.fragmentsdemo;
 
-import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 /**
@@ -17,38 +17,53 @@ import android.widget.TextView;
  */
 public class TitlesFragment extends ListFragment {
 
-	private static final String[] TITLES = {
-			"Mercury",
-			"Venus",
-			"Earth",
-			"Mars",
-			"Jupiter",
-			"Saturn",
-			"Uranus",
-			"Neptune",
-	};
+	private OnTitleSelectedListener mCallback = null;
+
+	/**
+	 * Container Activity must implement this callback.
+	 */
+	public interface OnTitleSelectedListener {
+		public void onTitleSelected(int position);
+	}
 
 	@Override
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
+		getListView().setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+
 		TitleAdapter adapter = new TitleAdapter(getActivity());
 		setListAdapter(adapter);
+	}
 
-		/*
-		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-			setListAdapter(new ArrayAdapter<String>(
-					getActivity(),
-					android.R.layout.simple_list_item_activated_1,
-					TITLES));
-		} else {
-			setListAdapter(new ArrayAdapter<String>(
-					getActivity(),
-					android.R.layout.simple_list_item_1,
-					TITLES));
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+
+		// This makes sure that the container activity has implemented
+		// the callback interface. If not, it throws an exception
+		try {
+			mCallback = (OnTitleSelectedListener) activity;
+		} catch (ClassCastException e) {
+			throw new ClassCastException(activity.toString()
+					+ " must implement OnTitleSelectedListener");
 		}
-		*/
+	}
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		return super.onCreateView(inflater, container, savedInstanceState);
+	}
+
+	@Override
+	public void onListItemClick(ListView l, View v, int position, long id) {
+		// getListView().setItemChecked(position, true);
+		getListView().setSelection(position);
+
+		if (mCallback != null) {
+			mCallback.onTitleSelected(position);
+		}
 	}
 
 	private static class TitleAdapter extends BaseAdapter {
@@ -61,12 +76,12 @@ public class TitlesFragment extends ListFragment {
 
 		@Override
 		public int getCount() {
-			return TITLES.length;
+			return Data.DETAILS.length;
 		}
 
 		@Override
 		public Object getItem(int position) {
-			return TITLES[position];
+			return Data.DETAILS[position].title;
 		}
 
 		@Override
@@ -81,17 +96,11 @@ public class TitlesFragment extends ListFragment {
 				View layout = mLayoutInflater.inflate(
 						R.layout.title_item_layout, parent, false);
 				tv = (TextView) layout.findViewById(R.id.titleText);
-				tv.setText(TITLES[position]);
+				tv.setText(Data.DETAILS[position].title);
 			} else {
 				tv = (TextView) convertView;
 			}
 			return tv;
 		}
-	}
-
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
-		return super.onCreateView(inflater, container, savedInstanceState);
 	}
 }

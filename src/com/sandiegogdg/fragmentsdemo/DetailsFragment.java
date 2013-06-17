@@ -2,46 +2,67 @@ package com.sandiegogdg.fragmentsdemo;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ScrollView;
 import android.widget.TextView;
-
-import com.sandiegogdg.fragmentsdemo.Data.DetailsData;
 
 public class DetailsFragment extends Fragment {
 
+	private int mIndex;
+
 	/** Bundle argument used to display appropriate details data */
 	public static final String ARG_INDEX = "index";
+
+	/**
+	 * Factory method to create a DetailsFragment and set its index to that
+	 * provided.
+	 * 
+	 * @param index
+	 * @return
+	 */
+	public static DetailsFragment create(int index) {
+		DetailsFragment df = new DetailsFragment();
+		Bundle args = new Bundle();
+		args.putInt(ARG_INDEX, index);
+		df.setArguments(args);
+		return df;
+	}
+
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+		mIndex = getArguments().getInt(ARG_INDEX, 0);
+	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		View view = null;
+
 		// only create view if fragment is part of container, otherwise
 		// it will not be displayed
 		if (container != null) {
-			ScrollView scroller = new ScrollView(getActivity());
-			TextView text = new TextView(getActivity());
-			int padding = (int) TypedValue.applyDimension(
-					TypedValue.COMPLEX_UNIT_DIP,
-					4, getActivity().getResources().getDisplayMetrics());
-			text.setPadding(padding, padding, padding, padding);
-			scroller.addView(text);
-			final DetailsData dd = Data.DETAILS[getArguments().getInt(
-					ARG_INDEX, 0)];
-			text.setText(dd.text);
-			text.setTextSize(24);
+			mIndex = getArguments().getInt(ARG_INDEX, 0);
+			final Data.Details dd = Data.DETAILS[mIndex];
+			view = inflater.inflate(R.layout.details_layout, container,
+					false);
+			TextView text = (TextView) view.findViewById(
+					R.id.detailsText);
+			text.setText(dd.description);
 			text.setCompoundDrawablesWithIntrinsicBounds(
 					null,
 					getResources().getDrawable(dd.resId),
 					null,
 					null);
-			return scroller;
 		}
 		return view;
 	}
 
+	/**
+	 * @return index of currently displayed details
+	 */
+	public int getCurrentIndex() {
+		return mIndex;
+	}
 }

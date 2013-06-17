@@ -6,6 +6,5 @@
     android:layout_margin="4dip"
     android:gravity="center_vertical"
     android:textSize="24sp"
-    android:textIsSelectable="false"
     android:padding="6dip"
 />

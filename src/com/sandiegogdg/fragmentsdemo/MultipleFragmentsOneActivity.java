@@ -13,7 +13,8 @@ import android.widget.LinearLayout;
  * Using only one activity, choose during run-time which fragment(s) to display
  * depending on screen size and/or state.
  */
-public class MultipleFragmentsOneActivity extends FragmentActivity {
+public class MultipleFragmentsOneActivity extends FragmentActivity implements
+		TitlesFragment.OnTitleSelectedListener {
 
 	private final static String TITLES_FRAGMENT_TAG = "titles";
 	private final static String DETAILS_FRAGMENT_TAG = "details";
@@ -27,15 +28,32 @@ public class MultipleFragmentsOneActivity extends FragmentActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.one_activity);
 
+		// if we're being restored from a previous state then we don't need to
+		// do anything and should return or else we might end up with
+		// overlapping fragments.
+		if (savedInstanceState != null) {
+			return;
+		}
+
+		if (isLayoutSizeAtLeast(Configuration.SCREENLAYOUT_SIZE_LARGE)) {
+			showBothFragments();
+		} else {
+			showOneFragment();
+		}
+	}
+
+	/**
+	 * Mirrors SDK method, API 11+
+	 * 
+	 * @param size
+	 * @return
+	 */
+	private boolean isLayoutSizeAtLeast(int size) {
 		Configuration config = getResources().getConfiguration();
 		final int screenSize = config.screenLayout
 				& Configuration.SCREENLAYOUT_SIZE_MASK;
-		if (screenSize == Configuration.SCREENLAYOUT_SIZE_NORMAL) {
-			showOneFragment();
-		}
-		if (screenSize == Configuration.SCREENLAYOUT_SIZE_LARGE) {
-			showBothFragments();
-		}
+		return (screenSize == Configuration.SCREENLAYOUT_SIZE_UNDEFINED) ? false
+				: screenSize >= size;
 	}
 
 	private void showOneFragment() {
@@ -44,7 +62,7 @@ public class MultipleFragmentsOneActivity extends FragmentActivity {
 		FragmentManager fm = getSupportFragmentManager();
 		TitlesFragment titlesFragment = new TitlesFragment();
 		FragmentTransaction trans = fm.beginTransaction();
-		trans.add(TITLES_ID, titlesFragment, TITLES_FRAGMENT_TAG);
+		trans.add(android.R.id.content, titlesFragment, TITLES_FRAGMENT_TAG);
 		trans.commit();
 	}
 
@@ -71,11 +89,48 @@ public class MultipleFragmentsOneActivity extends FragmentActivity {
 				LayoutParams.MATCH_PARENT, 3.0f));
 		DetailsFragment detailsFragment = new DetailsFragment();
 		Bundle args = new Bundle();
+		titlesFragment = (TitlesFragment) fm.findFragmentById(TITLES_ID);
 		args.putInt(DetailsFragment.ARG_INDEX, 0);
 		detailsFragment.setArguments(args);
 		trans = fm.beginTransaction();
 		trans.add(DETAILS_ID, detailsFragment, DETAILS_FRAGMENT_TAG);
 		trans.commit();
 		layout.addView(detailsLayout);
+	}
+
+	@Override
+	public void onTitleSelected(int position) {
+		if (mShowingBothFragments) {
+			// change content of details fragment
+			FragmentManager fm = getSupportFragmentManager();
+			DetailsFragment details = (DetailsFragment)
+					fm.findFragmentById(DETAILS_ID);
+			if (details == null || details.getCurrentIndex() != position) {
+				details = DetailsFragment.create(position);
+
+				FragmentTransaction trans = fm.beginTransaction();
+				trans.replace(DETAILS_ID, details);
+				trans.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+				trans.commit();
+			}
+		} else {
+			// replace titles fragment with details fragment
+			FragmentManager fm = getSupportFragmentManager();
+			DetailsFragment details = (DetailsFragment)
+					fm.findFragmentById(TITLES_ID);
+			if (details == null || details.getCurrentIndex() != position) {
+				details = DetailsFragment.create(position);
+
+				FragmentTransaction trans = fm.beginTransaction();
+				trans.replace(
+						fm.findFragmentByTag(TITLES_FRAGMENT_TAG).getId(),
+						details);
+				trans.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+				// need to add to the back stack so that the back key will go
+				// back to the titles fragment
+				trans.addToBackStack(null);
+				trans.commit();
+			}
+		}
 	}
 }
