@@ -21,29 +21,49 @@ public class MultipleFragmentsOneActivity extends FragmentActivity implements
 	private final static int TITLES_ID = 101;
 	private final static int DETAILS_ID = 102;
 
-	private boolean mShowingBothFragments;
+	private static final String ARG_DETAILS_DISPLAYED = "detailsDisplayed";
+
+	private boolean mDualPane;
+	private boolean mDetailsDisplayed; // only important when activity is
+										// displaying one fragment only
+	private int mCurrentIndex = 0;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.one_activity);
 
-		// if we're being restored from a previous state then we don't need to
-		// do anything and should return or else we might end up with
-		// overlapping fragments.
+		// make sure to restore fragments if necessary
 		if (savedInstanceState != null) {
-			return;
-		}
+			mCurrentIndex = savedInstanceState.getInt(
+					DetailsFragment.ARG_INDEX, 0);
+			mDetailsDisplayed = savedInstanceState.getBoolean(
+					ARG_DETAILS_DISPLAYED);
 
-		if (isLayoutSizeAtLeast(Configuration.SCREENLAYOUT_SIZE_LARGE)) {
-			showBothFragments();
+			// the inner layouts containing the fragments are not automatically
+			// recreated by android so we need to recreate them here
+			// see below for why inner layouts were necessary
+			if (isLayoutSizeAtLeast(Configuration.SCREENLAYOUT_SIZE_LARGE)) {
+				showBothFragments();
+			}
 		} else {
-			showOneFragment();
+			if (isLayoutSizeAtLeast(Configuration.SCREENLAYOUT_SIZE_LARGE)) {
+				showBothFragments();
+			} else {
+				showOneFragment();
+			}
 		}
 	}
 
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putInt(DetailsFragment.ARG_INDEX, mCurrentIndex);
+		outState.putBoolean(ARG_DETAILS_DISPLAYED, mDetailsDisplayed);
+	}
+
 	/**
-	 * Mirrors SDK method, API 11+
+	 * Mirrors SDK method, Configuration.isLayoutSizeAtLeast, API 11+
 	 * 
 	 * @param size
 	 * @return
@@ -56,21 +76,29 @@ public class MultipleFragmentsOneActivity extends FragmentActivity implements
 				: screenSize >= size;
 	}
 
+	/**
+	 * Need to handle recreating fragment state when activity is recreated,
+	 * for example, after a configuration change.
+	 */
 	private void showOneFragment() {
-		mShowingBothFragments = false;
+		mDualPane = false;
 
 		FragmentManager fm = getSupportFragmentManager();
 		TitlesFragment titlesFragment = new TitlesFragment();
 		FragmentTransaction trans = fm.beginTransaction();
 		trans.add(android.R.id.content, titlesFragment, TITLES_FRAGMENT_TAG);
 		trans.commit();
+
+		if (mDetailsDisplayed) {
+			displayDetailsOnly();
+		}
 	}
 
 	private void showBothFragments() {
-		mShowingBothFragments = true;
+		mDualPane = true;
 
 		// we need to add inner layouts to the main layout to account for
-		// the weights of the fragments
+		// the weights of the fragments in our linear layout
 		FragmentManager fm = getSupportFragmentManager();
 		TitlesFragment titlesFragment = new TitlesFragment();
 		LinearLayout layout = (LinearLayout) findViewById(R.id.one_activity_parent_layout);
@@ -90,7 +118,7 @@ public class MultipleFragmentsOneActivity extends FragmentActivity implements
 		DetailsFragment detailsFragment = new DetailsFragment();
 		Bundle args = new Bundle();
 		titlesFragment = (TitlesFragment) fm.findFragmentById(TITLES_ID);
-		args.putInt(DetailsFragment.ARG_INDEX, 0);
+		args.putInt(DetailsFragment.ARG_INDEX, mCurrentIndex);
 		detailsFragment.setArguments(args);
 		trans = fm.beginTransaction();
 		trans.add(DETAILS_ID, detailsFragment, DETAILS_FRAGMENT_TAG);
@@ -99,38 +127,53 @@ public class MultipleFragmentsOneActivity extends FragmentActivity implements
 	}
 
 	@Override
+	public void onBackPressed() {
+		super.onBackPressed();
+
+		mDetailsDisplayed = false;
+	}
+
+	@Override
 	public void onTitleSelected(int position) {
-		if (mShowingBothFragments) {
+		mCurrentIndex = position;
+
+		if (mDualPane) {
 			// change content of details fragment
 			FragmentManager fm = getSupportFragmentManager();
 			DetailsFragment details = (DetailsFragment)
 					fm.findFragmentById(DETAILS_ID);
 			if (details == null || details.getCurrentIndex() != position) {
+				// recreate the details fragment with the new position
+				// and replace the old one
 				details = DetailsFragment.create(position);
-
 				FragmentTransaction trans = fm.beginTransaction();
 				trans.replace(DETAILS_ID, details);
-				trans.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+				trans.setTransition(FragmentTransaction.TRANSIT_EXIT_MASK);
 				trans.commit();
 			}
 		} else {
-			// replace titles fragment with details fragment
-			FragmentManager fm = getSupportFragmentManager();
-			DetailsFragment details = (DetailsFragment)
-					fm.findFragmentById(TITLES_ID);
-			if (details == null || details.getCurrentIndex() != position) {
-				details = DetailsFragment.create(position);
+			displayDetailsOnly();
+		}
+	}
 
-				FragmentTransaction trans = fm.beginTransaction();
-				trans.replace(
-						fm.findFragmentByTag(TITLES_FRAGMENT_TAG).getId(),
-						details);
-				trans.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-				// need to add to the back stack so that the back key will go
-				// back to the titles fragment
-				trans.addToBackStack(null);
-				trans.commit();
-			}
+	private void displayDetailsOnly() {
+		// replace titles fragment with details fragment
+		mDetailsDisplayed = true;
+		FragmentManager fm = getSupportFragmentManager();
+		DetailsFragment details = (DetailsFragment)
+				fm.findFragmentById(TITLES_ID);
+		if (details == null || details.getCurrentIndex() != mCurrentIndex) {
+			details = DetailsFragment.create(mCurrentIndex);
+
+			FragmentTransaction trans = fm.beginTransaction();
+			trans.replace(
+					fm.findFragmentByTag(TITLES_FRAGMENT_TAG).getId(),
+					details);
+			trans.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+			// need to add to the back stack so that the back key will go
+			// back to the titles fragment
+			trans.addToBackStack(null);
+			trans.commit();
 		}
 	}
 }

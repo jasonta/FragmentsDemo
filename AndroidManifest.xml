@@ -15,12 +15,21 @@
         
         <activity
             android:name=".MultipleFragmentsOneActivity"
-            android:configChanges="orientation|screenSize" >
+            >
+        </activity>
+        
+        <activity
+            android:name=".MultipleFragmentsMultipleActivities"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <activity
+            android:name=".DetailsActivity"
+            />
         
     </application>
 

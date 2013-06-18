@@ -13,7 +13,7 @@ import android.widget.TextView;
 
 /**
  * Displays a list of titles, each of which can be clicked on to display
- * the contents using ContentFragment.
+ * the contents using DetailsFragment.
  */
 public class TitlesFragment extends ListFragment {
 
@@ -29,8 +29,6 @@ public class TitlesFragment extends ListFragment {
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-
-		getListView().setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
 		TitleAdapter adapter = new TitleAdapter(getActivity());
 		setListAdapter(adapter);
@@ -51,16 +49,7 @@ public class TitlesFragment extends ListFragment {
 	}
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
-		return super.onCreateView(inflater, container, savedInstanceState);
-	}
-
-	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
-		// getListView().setItemChecked(position, true);
-		getListView().setSelection(position);
-
 		if (mCallback != null) {
 			mCallback.onTitleSelected(position);
 		}

@@ -58,6 +58,12 @@ public class DetailsFragment extends Fragment {
 		}
 		return view;
 	}
+	
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putInt(ARG_INDEX, mIndex);
+	}
 
 	/**
 	 * @return index of currently displayed details
