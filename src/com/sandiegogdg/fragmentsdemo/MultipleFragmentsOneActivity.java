@@ -63,7 +63,7 @@ public class MultipleFragmentsOneActivity extends FragmentActivity implements
 	}
 
 	/**
-	 * Mirrors SDK method, Configuration.isLayoutSizeAtLeast, API 11+
+	 * Mirrors SDK method: Configuration.isLayoutSizeAtLeast, API 11+
 	 * 
 	 * @param size
 	 * @return
