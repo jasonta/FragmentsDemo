@@ -1,5 +1,8 @@
 package com.sandiegogdg.fragmentsdemo;
 
+/**
+ * Contains data displayed to the user via titles and details fragments.
+ */
 public final class Data {
 
 	static class Details {

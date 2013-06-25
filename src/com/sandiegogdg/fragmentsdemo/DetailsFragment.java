@@ -7,8 +7,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+/**
+ * Displays the details of currently selected title.
+ */
 public class DetailsFragment extends Fragment {
 
+	/** Currently displayed index */
 	private int mIndex;
 
 	/** Bundle argument used to display appropriate details data */
@@ -58,7 +62,7 @@ public class DetailsFragment extends Fragment {
 		}
 		return view;
 	}
-	
+
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);

@@ -7,10 +7,14 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.view.View;
 
+/**
+ * Handle titles fragment internally, but start a separate activity, if not 
+ * dual-pane, to display details fragment.
+ */
 public class MultipleFragmentsMultipleActivities extends FragmentActivity
 		implements TitlesFragment.OnTitleSelectedListener {
 
-	private final static String DETAILS_FRAGMENT_TAG = "details";
+	private static final String DETAILS_FRAGMENT_TAG = "details";
 
 	private static final String ARG_CURRENT_INDEX = "currentIndex";
 	private static final String ARG_SHOWN_INDEX = "shownIndex";
@@ -29,7 +33,7 @@ public class MultipleFragmentsMultipleActivities extends FragmentActivity
 			mShownIndex = savedInstanceState.getInt(ARG_SHOWN_INDEX);
 		}
 
-		View detailsFrame = findViewById(R.id.detailsLayout);
+		final View detailsFrame = findViewById(R.id.detailsLayout);
 		mDualPane = (detailsFrame != null
 				&& detailsFrame.getVisibility() == View.VISIBLE);
 
@@ -59,6 +63,9 @@ public class MultipleFragmentsMultipleActivities extends FragmentActivity
 				FragmentManager fm = getSupportFragmentManager();
 				DetailsFragment df = DetailsFragment.create(index);
 				FragmentTransaction trans = fm.beginTransaction();
+				// we don't actually use tags in this app, but it could come
+				// in handy if we need to find one via findFragmentByTag in
+				// the future
 				trans.replace(R.id.detailsLayout, df, DETAILS_FRAGMENT_TAG);
 				trans.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
 				trans.commit();

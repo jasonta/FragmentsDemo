@@ -30,8 +30,7 @@ public class TitlesFragment extends ListFragment {
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
-		TitleAdapter adapter = new TitleAdapter(getActivity());
-		setListAdapter(adapter);
+		setListAdapter(new TitleAdapter(getActivity()));
 	}
 
 	@Override
@@ -55,6 +54,9 @@ public class TitlesFragment extends ListFragment {
 		}
 	}
 
+	/**
+	 * Encapsulates and handles display of list item view containing title.
+	 */
 	private static class TitleAdapter extends BaseAdapter {
 
 		private LayoutInflater mLayoutInflater;
@@ -80,6 +82,7 @@ public class TitlesFragment extends ListFragment {
 
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
+			// our list item is only one text view so no need for a ViewHolder
 			TextView tv;
 			if (convertView == null) {
 				View layout = mLayoutInflater.inflate(

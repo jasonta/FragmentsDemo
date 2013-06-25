@@ -18,14 +18,19 @@ public class MultipleFragmentsOneActivity extends FragmentActivity implements
 
 	private final static String TITLES_FRAGMENT_TAG = "titles";
 	private final static String DETAILS_FRAGMENT_TAG = "details";
+
+	// used for internal layouts, which contain fragments, to get proper
+	// linear layout behavior
 	private final static int TITLES_ID = 101;
 	private final static int DETAILS_ID = 102;
 
 	private static final String ARG_DETAILS_DISPLAYED = "detailsDisplayed";
 
 	private boolean mDualPane;
-	private boolean mDetailsDisplayed; // only important when activity is
-										// displaying one fragment only
+
+	/** only important when activity is displaying one fragment only */
+	private boolean mDetailsDisplayed;
+
 	private int mCurrentIndex = 0;
 
 	@Override
@@ -40,9 +45,9 @@ public class MultipleFragmentsOneActivity extends FragmentActivity implements
 			mDetailsDisplayed = savedInstanceState.getBoolean(
 					ARG_DETAILS_DISPLAYED);
 
-			// the inner layouts containing the fragments are not automatically
-			// recreated by android so we need to recreate them here
-			// see below for why inner layouts were necessary
+			// The inner layouts containing the fragments are not automatically
+			// recreated by android so we need to recreate them here.
+			// See below for why inner layouts are necessary.
 			if (isLayoutSizeAtLeast(Configuration.SCREENLAYOUT_SIZE_LARGE)) {
 				showBothFragments();
 			}
